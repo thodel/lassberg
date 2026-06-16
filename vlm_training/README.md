@@ -38,7 +38,7 @@ source vlm_training/.venv/bin/activate
 
 # 2. Install dependencies
 pip install -r vlm_training/requirements.txt
-huggingface-cli login   # needed to pull Qwen3-VL + push results
+hf auth login           # needed to pull Qwen3-VL + push results
 wandb login             # optional, for training logs
 
 # 3. (Optional) Ingest your own page-level scans and push to HF Hub
