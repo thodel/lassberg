@@ -1,19 +1,28 @@
 # Dataset configuration for HTR training
-# ----------------------------------------
-# Set active_preset to one of the named presets below,
-# or set it to "custom" and fill in the custom section.
+# ─────────────────────────────────────────────────────────────────────────────
+# Set active_preset to one of the named presets below, or "custom".
 #
-# source_type: "line"  = text-line crops (short image, short text)
-#              "page"  = full-page scans (large image, long text)
+# Fields per entry:
+#   repo_id      HuggingFace dataset repo (required)
+#   source_type  "line" (text-line crop) | "page" (full-page scan)
+#   text_column  "text" (default) | "xml_content" (PageXML — text auto-extracted)
+#   min_text_len minimum character count; filters near-empty rows (default: 3)
+#   split        HF split to load (default: "train")
 #
-# min_text_len: minimum character count — filters out near-empty rows
+# Excluded datasets (reasons noted):
+#   image-text_handwritten-bundesratsprotokolle_xix-xx  → auto-transcribed, no ground truth
+#   image-text_historisches-grundbuch-basel_xix-xx      → auto-transcribed, no ground truth
+#   salamanca_trainingdata                              → empty dataset
+#   transkribus-exports-bullinger-handschrift           → private
 
 active_preset: all
 
 presets:
 
-  # All available ground-truth datasets
+  # ── All available ground-truth datasets ─────────────────────────────────────
   all:
+
+    # Plain text column datasets
     - repo_id: dh-unibe/image-text_kurrent-xix
       source_type: line
       min_text_len: 3
@@ -58,7 +67,32 @@ presets:
       source_type: line
       min_text_len: 3
 
-  # Medieval scripts only (xiv–xvi)
+    - repo_id: dh-unibe/data-towerbooks-textlines
+      source_type: line
+      min_text_len: 3
+
+    # PageXML datasets — text extracted from xml_content column
+    - repo_id: dh-unibe/image-text_hgb-kf_mixture
+      source_type: line
+      text_column: xml_content
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_aaeb-xiv-xvii-part-2
+      source_type: line
+      text_column: xml_content
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_nr-sr-vereinigte-bundesversammlung-xix
+      source_type: line
+      text_column: xml_content
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_koenigsfelden-adhr-colmar
+      source_type: line
+      text_column: xml_content
+      min_text_len: 3
+
+  # ── Medieval scripts only (xiv–xvi) ─────────────────────────────────────────
   medieval:
     - repo_id: dh-unibe/image-text_medieval-scripts_xiv-xv-xvi
       source_type: line
@@ -70,6 +104,11 @@ presets:
 
     - repo_id: dh-unibe/image-text_aaeb-xiv-xvii
       source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_aaeb-xiv-xvii-part-2
+      source_type: line
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_rats-und-richtebuecher_xv-xvi
@@ -88,7 +127,12 @@ presets:
       source_type: line
       min_text_len: 3
 
-  # 19th–20th century German handwriting
+    - repo_id: dh-unibe/image-text_koenigsfelden-adhr-colmar
+      source_type: line
+      text_column: xml_content
+      min_text_len: 3
+
+  # ── 19th–20th century German handwriting ────────────────────────────────────
   modern:
     - repo_id: dh-unibe/image-text_kurrent-xix
       source_type: line
@@ -106,7 +150,16 @@ presets:
       source_type: line
       min_text_len: 3
 
-  # Add your own page-level datasets here
+    - repo_id: dh-unibe/image-text_nr-sr-vereinigte-bundesversammlung-xix
+      source_type: line
+      text_column: xml_content
+      min_text_len: 3
+
+    - repo_id: dh-unibe/data-towerbooks-textlines
+      source_type: line
+      min_text_len: 3
+
+  # ── Add your own page-level datasets here ───────────────────────────────────
   custom:
     - repo_id: dh-unibe/image-text_lassberg-letters
       source_type: page
