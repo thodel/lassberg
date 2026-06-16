@@ -30,11 +30,19 @@ Incoming JPGs + txts
 ## Quick start
 
 ```bash
-# 1. Install dependencies
-pip install -r vlm_training/requirements.txt
-pip install flash-attn --no-build-isolation   # optional but recommended
+# 1. Create and activate the virtual environment
+cd vlm_training
+uv venv .venv
+source .venv/bin/activate
 
-# 2. Ingest your page-level scans and push to HF Hub
+# 2. Install dependencies (reads pyproject.toml)
+uv pip install -e .
+uv pip install flash-attn --no-build-isolation   # optional but recommended
+
+huggingface-cli login   # needed to pull Qwen3-VL + push results
+wandb login             # optional, for training logs
+
+# 3. Ingest your page-level scans and push to HF Hub
 python vlm_training/src/ingest_pages.py \
     --input_dir  data/pages_new \
     --repo_id    dh-unibe/image-text_lassberg-letters \
@@ -42,19 +50,19 @@ python vlm_training/src/ingest_pages.py \
     --language   de \
     --date_range xix
 
-# 3. Register the new repo in PAGE_DATASETS inside data_prep.py, then:
+# 4. Register the new repo in PAGE_DATASETS inside data_prep.py, then:
 python vlm_training/src/data_prep.py
 #   writes: data/train  data/val
 
-# 4. Train
+# 5. Train
 python vlm_training/src/train.py
 
-# 5. Evaluate
+# 6. Evaluate
 python vlm_training/src/eval.py \
     --adapter output/qwen3-vl-htr \
     --n_samples 1000
 
-# 6. Push adapter to Hub
+# 7. Push adapter to Hub
 python vlm_training/push_to_hub.py \
     --adapter  output/qwen3-vl-htr \
     --repo_id  dh-unibe/qwen3-vl-30b-htr
