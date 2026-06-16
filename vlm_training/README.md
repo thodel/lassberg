@@ -29,26 +29,29 @@ Incoming JPGs + txts
 
 ## Quick start
 
+All commands are run from the **repo root** (`~/Repo/lassberg`).
+
 ```bash
 # 1. Create and activate the virtual environment
-cd vlm_training
-uv venv .venv
-source .venv/bin/activate
+python3 -m venv vlm_training/.venv
+source vlm_training/.venv/bin/activate
 
-# 2. Install dependencies (reads pyproject.toml)
-uv pip install -e .
+# 2. Install dependencies
+pip install -r vlm_training/requirements.txt
 huggingface-cli login   # needed to pull Qwen3-VL + push results
 wandb login             # optional, for training logs
 
-# 3. Ingest your page-level scans and push to HF Hub
+# 3. (Optional) Ingest your own page-level scans and push to HF Hub
 python vlm_training/src/ingest_pages.py \
     --input_dir  data/pages_new \
     --repo_id    dh-unibe/image-text_lassberg-letters \
     --collection "Lassberg Letters" \
     --language   de \
     --date_range xix
+# Then add the repo_id to the 'custom' preset in vlm_training/config/datasets.yaml
 
-# 4. Register the new repo in PAGE_DATASETS inside data_prep.py, then:
+# 4. Prepare training data
+# Edit vlm_training/config/datasets.yaml to choose a preset (all / medieval / modern / custom)
 python vlm_training/src/data_prep.py
 #   writes: data/train  data/val
 
@@ -66,6 +69,27 @@ python vlm_training/push_to_hub.py \
     --repo_id  dh-unibe/qwen3-vl-30b-htr
 ```
 
+## Choosing datasets
+
+Datasets are configured in `vlm_training/config/datasets.yaml`. Set `active_preset` to one of
+the built-in presets, or pass `--preset` on the command line:
+
+```bash
+python vlm_training/src/data_prep.py --preset medieval
+python vlm_training/src/data_prep.py --preset modern
+python vlm_training/src/data_prep.py --preset all      # default
+python vlm_training/src/data_prep.py --preset custom   # your own page-level data
+```
+
+To add a new dataset, append it to any preset in `datasets.yaml`:
+
+```yaml
+- repo_id: dh-unibe/image-text_my-collection
+  source_type: page       # or "line" for text-line crops
+  text_column: text       # or "xml_content" for PageXML datasets
+  min_text_len: 20
+```
+
 ## Dataset sources
 
 ### Line-level (from dh-unibe HF Hub)
@@ -75,15 +99,27 @@ python vlm_training/push_to_hub.py \
 | image-text_kurrent-xix | ~158K | 19th-c. Kurrent handwriting |
 | image-text_medieval-scripts_xiv-xv-xvi | ~100K+ | Medieval Latin/German |
 | image-text_zh-regierungsratsprotokolle | ~100K+ | Zurich council minutes |
-| image-text_historisches-grundbuch-basel_xix-xx | ~100K+ | Basel property register |
+| image-text_historisches-grundbuch-basel_xix-xx_train | ~10K | Basel property register (ground truth subset) |
 | image-text_aaeb-xiv-xvii | ~2.5K | Cantonal archive, multilingual |
+| image-text_aaeb-xiv-xvii-part-2 | ~121 | Cantonal archive part 2 (PageXML) |
 | image-text_parzival-part-1 | ~3.6K | Medieval manuscript |
 | image-text_rats-und-richtebuecher_xv-xvi | ~10K+ | Council records |
 | image-text_german-20th-century | ~8.5K | 20th-c. German handwriting |
+| image-text_koenigsfelden-charters-part-2 | ~68 | Königsfelden charters |
+| image-text_koenigsfelden-charters-part-3 | ~n<1K | Königsfelden charters |
+| image-text_koenigsfelden-charters-post-1500 | ~1K+ | Königsfelden post-1500 |
+| image-text_koenigsfelden-adhr-colmar | ~223 | Middle High German/Latin charters (PageXML) |
+| image-text_hgb-kf_mixture | ~154 | Mixed Basel/Königsfelden (PageXML) |
+| image-text_nr-sr-vereinigte-bundesversammlung-xix | ~182 | Swiss parliament minutes (PageXML) |
+| data-towerbooks-textlines | ~47.8K | Tower books text lines |
+
+Excluded from training:
+- `image-text_handwritten-bundesratsprotokolle_xix-xx` — auto-transcribed, no ground truth
+- `image-text_historisches-grundbuch-basel_xix-xx` (full) — auto-transcribed, no ground truth
 
 ### Page-level (uploaded via ingest_pages.py)
 
-Register datasets in `PAGE_DATASETS` inside `src/data_prep.py`.
+Add your page-level datasets to the `custom` preset in `vlm_training/config/datasets.yaml`.
 
 ## Source-aware collator
 
