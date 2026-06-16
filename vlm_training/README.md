@@ -37,8 +37,6 @@ source .venv/bin/activate
 
 # 2. Install dependencies (reads pyproject.toml)
 uv pip install -e .
-uv pip install flash-attn --no-build-isolation   # optional but recommended
-
 huggingface-cli login   # needed to pull Qwen3-VL + push results
 wandb login             # optional, for training logs
 

@@ -48,7 +48,6 @@ model = AutoModelForImageTextToText.from_pretrained(
     device_map="auto",          # spreads across all available GPUs automatically
     trust_remote_code=True,
     torch_dtype=torch.bfloat16,
-    attn_implementation="flash_attention_2",  # remove if flash-attn not installed
 )
 model.config.use_cache = False
 
