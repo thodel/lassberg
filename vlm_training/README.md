@@ -52,7 +52,8 @@ python vlm_training/src/ingest_pages.py \
 
 # 4. Prepare training data
 # Edit vlm_training/config/datasets.yaml to choose a preset (all / medieval / modern / custom)
-python vlm_training/src/data_prep.py
+# If your home partition is small, redirect the HF download cache to a larger disk:
+python vlm_training/src/data_prep.py --hf_cache /data/hf_cache
 #   writes: data/train  data/val
 
 # 5. Train

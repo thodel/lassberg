@@ -22,6 +22,7 @@ Usage:
 
 import argparse
 import logging
+import os
 import re
 from collections import Counter
 from pathlib import Path
@@ -108,12 +109,18 @@ def load_and_prepare(
     seed: int = 42,
     output_dir: str = "data",
 ):
-    entries = load_config(preset)
-    parts   = [_load_one(e) for e in entries]
-    parts   = [p for p in parts if p is not None]
+    entries  = load_config(preset)
+    results  = [_load_one(e) for e in entries]
+    parts    = [p for p in results if p is not None]
+    n_failed = len(results) - len(parts)
 
     if not parts:
-        raise RuntimeError("No datasets loaded — check your preset config.")
+        raise RuntimeError(
+            f"No datasets loaded — all {n_failed} dataset(s) failed. "
+            "Common causes: no disk space in the HF cache, or network errors. "
+            "Set HF_DATASETS_CACHE to a path with sufficient space and retry:\n"
+            "  export HF_DATASETS_CACHE=/data/hf_cache"
+        )
 
     full = concatenate_datasets(parts).shuffle(seed=seed)
     logger.info(f"Total samples: {len(full):,}")
@@ -142,7 +149,17 @@ if __name__ == "__main__":
     )
     parser.add_argument("--val_fraction", type=float, default=0.02)
     parser.add_argument("--output_dir",   default="data")
+    parser.add_argument(
+        "--hf_cache",
+        default=None,
+        help="Override HF dataset cache directory (useful when home partition is small). "
+             "Example: --hf_cache /data/hf_cache",
+    )
     args = parser.parse_args()
+
+    if args.hf_cache:
+        os.environ["HF_DATASETS_CACHE"] = args.hf_cache
+        logger.info(f"HF cache -> {args.hf_cache}")
 
     load_and_prepare(
         preset=args.preset,
