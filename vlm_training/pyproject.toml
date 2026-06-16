@@ -17,6 +17,3 @@ dependencies = [
     "wandb",
 ]
 
-[build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.backends.legacy:build"
