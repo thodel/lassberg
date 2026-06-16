@@ -1,0 +1,113 @@
+# Dataset configuration for HTR training
+# ----------------------------------------
+# Set active_preset to one of the named presets below,
+# or set it to "custom" and fill in the custom section.
+#
+# source_type: "line"  = text-line crops (short image, short text)
+#              "page"  = full-page scans (large image, long text)
+#
+# min_text_len: minimum character count — filters out near-empty rows
+
+active_preset: all
+
+presets:
+
+  # All available ground-truth datasets
+  all:
+    - repo_id: dh-unibe/image-text_kurrent-xix
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_medieval-scripts_xiv-xv-xvi
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_zh-regierungsratsprotokolle
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_historisches-grundbuch-basel_xix-xx_train
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_aaeb-xiv-xvii
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_parzival-part-1
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_rats-und-richtebuecher_xv-xvi
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_german-20th-century
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-2
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-3
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_koenigsfelden-charters-post-1500
+      source_type: line
+      min_text_len: 3
+
+  # Medieval scripts only (xiv–xvi)
+  medieval:
+    - repo_id: dh-unibe/image-text_medieval-scripts_xiv-xv-xvi
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_parzival-part-1
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_aaeb-xiv-xvii
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_rats-und-richtebuecher_xv-xvi
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-2
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-3
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_koenigsfelden-charters-post-1500
+      source_type: line
+      min_text_len: 3
+
+  # 19th–20th century German handwriting
+  modern:
+    - repo_id: dh-unibe/image-text_kurrent-xix
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_zh-regierungsratsprotokolle
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_historisches-grundbuch-basel_xix-xx_train
+      source_type: line
+      min_text_len: 3
+
+    - repo_id: dh-unibe/image-text_german-20th-century
+      source_type: line
+      min_text_len: 3
+
+  # Add your own page-level datasets here
+  custom:
+    - repo_id: dh-unibe/image-text_lassberg-letters
+      source_type: page
+      min_text_len: 20
