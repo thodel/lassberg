@@ -158,8 +158,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.hf_cache:
+        # Set HF_HOME to redirect the entire HuggingFace cache (hub + datasets).
+        # Must be set before any HF imports resolve their paths.
+        os.environ["HF_HOME"] = args.hf_cache
         os.environ["HF_DATASETS_CACHE"] = args.hf_cache
-        logger.info(f"HF cache -> {args.hf_cache}")
+        logger.info(f"HF_HOME -> {args.hf_cache}")
 
     load_and_prepare(
         preset=args.preset,
