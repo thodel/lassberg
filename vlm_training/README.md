@@ -53,7 +53,7 @@ python vlm_training/src/ingest_pages.py \
 # 4. Prepare training data
 # Edit vlm_training/config/datasets.yaml to choose a preset (all / medieval / modern / custom)
 # If your home partition is small, redirect the HF download cache to a larger disk:
-python vlm_training/src/data_prep.py --hf_cache /data/hf_cache
+python vlm_training/src/data_prep.py --hf_cache /mnt/wbkolleg_dh_1/Textrecognition_Training
 #   writes: data/train  data/val
 
 # 5. Train

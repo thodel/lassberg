@@ -118,8 +118,8 @@ def load_and_prepare(
         raise RuntimeError(
             f"No datasets loaded — all {n_failed} dataset(s) failed. "
             "Common causes: no disk space in the HF cache, or network errors. "
-            "Set HF_DATASETS_CACHE to a path with sufficient space and retry:\n"
-            "  export HF_DATASETS_CACHE=/data/hf_cache"
+            "Set HF_HOME to a path with sufficient space and retry:\n"
+            "  export HF_HOME=/mnt/wbkolleg_dh_1/Textrecognition_Training"
         )
 
     full = concatenate_datasets(parts).shuffle(seed=seed)
@@ -152,8 +152,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--hf_cache",
         default=None,
-        help="Override HF dataset cache directory (useful when home partition is small). "
-             "Example: --hf_cache /data/hf_cache",
+        help="Override HF cache root (sets HF_HOME + HF_DATASETS_CACHE). "
+             "Example: --hf_cache /mnt/wbkolleg_dh_1/Textrecognition_Training",
     )
     args = parser.parse_args()
 
