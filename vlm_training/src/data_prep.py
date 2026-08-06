@@ -14,8 +14,19 @@ text_column: "text"         Plain text column (most datasets)
 text_column: "xml_content"  PageXML — text is extracted from
                             <TextEquiv><Unicode>...</Unicode></TextEquiv>
 
+Storage layout (default)
+────────────────────────
+/mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder/
+  hf_datasets/                 ← HF download cache (one subfolder per dataset)
+    datasets--dh-unibe--image-text_kurrent-xix/
+    datasets--dh-unibe--image-text_medieval-scripts_xiv-xv-xvi/
+    ...
+  data/
+    train/                     ← Arrow cache written by this script
+    val/
+
 Usage:
-    python vlm_training/src/data_prep.py                  # uses active_preset
+    python vlm_training/src/data_prep.py                  # uses defaults + active_preset
     python vlm_training/src/data_prep.py --preset medieval
     python vlm_training/src/data_prep.py --preset all
 """
@@ -33,18 +44,30 @@ from datasets import concatenate_datasets, load_dataset
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
-KEEP_COLS    = {"image", "text", "source_type"}
-CONFIG_PATH  = Path(__file__).parent.parent / "config" / "datasets.yaml"
+KEEP_COLS   = {"image", "text", "source_type"}
+CONFIG_PATH = Path(__file__).parent.parent / "config" / "datasets.yaml"
+
+BASE_DIR    = Path("/mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder")
+HF_DATASETS_DIR = BASE_DIR / "hf_datasets"
+DEFAULT_OUTPUT  = str(BASE_DIR / "data")
 
 # Matches all <Unicode>...</Unicode> blocks in a PageXML string
 _UNICODE_RE = re.compile(r"<Unicode>(.*?)</Unicode>", re.DOTALL)
+
+
+def _repo_cache_dir(hf_datasets_dir: Path, repo_id: str) -> Path:
+    """Return the expected HF hub cache folder for a dataset repo."""
+    safe = repo_id.replace("/", "--")
+    return hf_datasets_dir / f"datasets--{safe}"
 
 
 def _extract_pagexml_text(xml: str) -> str:
     """Pull all Unicode text nodes from a PageXML string and join with a space."""
     if not xml:
         return ""
-    return " ".join(m.group(1).strip() for m in _UNICODE_RE.finditer(xml) if m.group(1).strip())
+    return " ".join(
+        m.group(1).strip() for m in _UNICODE_RE.finditer(xml) if m.group(1).strip()
+    )
 
 
 def load_config(preset: str | None = None) -> list[dict]:
@@ -61,14 +84,20 @@ def load_config(preset: str | None = None) -> list[dict]:
     return entries
 
 
-def _load_one(entry: dict):
+def _load_one(entry: dict, hf_datasets_dir: Path):
     repo_id      = entry["repo_id"]
     source_type  = entry["source_type"]
     min_text_len = entry.get("min_text_len", 3)
     split        = entry.get("split", "train")
     text_column  = entry.get("text_column", "text")
 
-    logger.info(f"Loading {repo_id} ...")
+    # ── Skip if already cached locally (same name = same dataset) ────────────
+    cache_dir = _repo_cache_dir(hf_datasets_dir, repo_id)
+    if cache_dir.exists():
+        logger.info(f"Using cached  {repo_id}  ({cache_dir})")
+    else:
+        logger.info(f"Downloading   {repo_id} ...")
+
     try:
         ds = load_dataset(repo_id, split=split)
     except Exception as e:
@@ -79,7 +108,7 @@ def _load_one(entry: dict):
     if text_column == "xml_content":
         ds = ds.map(
             lambda x: {"text": _extract_pagexml_text(x["xml_content"] or "")},
-            desc=f"Extracting text from PageXML ({repo_id})",
+            desc=f"Extracting PageXML text ({repo_id})",
         )
     elif text_column != "text":
         ds = ds.rename_column(text_column, "text")
@@ -105,22 +134,25 @@ def _load_one(entry: dict):
 
 def load_and_prepare(
     preset: str | None = None,
+    hf_datasets_dir: Path = HF_DATASETS_DIR,
     val_fraction: float = 0.02,
     seed: int = 42,
-    output_dir: str = "data",
+    output_dir: str = DEFAULT_OUTPUT,
 ):
     entries  = load_config(preset)
-    results  = [_load_one(e) for e in entries]
+    results  = [_load_one(e, hf_datasets_dir) for e in entries]
     parts    = [p for p in results if p is not None]
     n_failed = len(results) - len(parts)
 
     if not parts:
         raise RuntimeError(
             f"No datasets loaded — all {n_failed} dataset(s) failed. "
-            "Common causes: no disk space in the HF cache, or network errors. "
-            "Set HF_HOME to a path with sufficient space and retry:\n"
-            "  export HF_HOME=/mnt/wbkolleg_dh_1/Textrecognition_Training"
+            "Common causes: no disk space or network errors. "
+            f"Check that {hf_datasets_dir} has sufficient free space."
         )
+
+    if n_failed:
+        logger.warning(f"{n_failed} dataset(s) skipped — continuing with {len(parts)} loaded.")
 
     full = concatenate_datasets(parts).shuffle(seed=seed)
     logger.info(f"Total samples: {len(full):,}")
@@ -148,24 +180,31 @@ if __name__ == "__main__":
         help="Override active_preset from datasets.yaml (e.g. medieval, modern, all, custom)",
     )
     parser.add_argument("--val_fraction", type=float, default=0.02)
-    parser.add_argument("--output_dir",   default="data")
+    parser.add_argument(
+        "--output_dir",
+        default=DEFAULT_OUTPUT,
+        help=f"Where to write the Arrow train/val cache (default: {DEFAULT_OUTPUT})",
+    )
     parser.add_argument(
         "--hf_cache",
-        default=None,
-        help="Override HF cache root (sets HF_HOME + HF_DATASETS_CACHE). "
-             "Example: --hf_cache /mnt/wbkolleg_dh_1/Textrecognition_Training",
+        default=str(HF_DATASETS_DIR),
+        help=f"HF cache root — sets HF_HOME (default: {HF_DATASETS_DIR})",
     )
     args = parser.parse_args()
 
-    if args.hf_cache:
-        # Set HF_HOME to redirect the entire HuggingFace cache (hub + datasets).
-        # Must be set before any HF imports resolve their paths.
-        os.environ["HF_HOME"] = args.hf_cache
-        os.environ["HF_DATASETS_CACHE"] = args.hf_cache
-        logger.info(f"HF_HOME -> {args.hf_cache}")
+    # Redirect entire HF cache before any HF library initialises its paths
+    os.environ["HF_HOME"] = args.hf_cache
+    os.environ["HF_DATASETS_CACHE"] = args.hf_cache
+    os.environ.setdefault("TMPDIR", str(BASE_DIR / "tmp"))
+    Path(os.environ["TMPDIR"]).mkdir(parents=True, exist_ok=True)
+    Path(args.hf_cache).mkdir(parents=True, exist_ok=True)
+    logger.info(f"HF_HOME       -> {args.hf_cache}")
+    logger.info(f"TMPDIR        -> {os.environ['TMPDIR']}")
+    logger.info(f"output_dir    -> {args.output_dir}")
 
     load_and_prepare(
         preset=args.preset,
+        hf_datasets_dir=Path(args.hf_cache),
         val_fraction=args.val_fraction,
         output_dir=args.output_dir,
     )
