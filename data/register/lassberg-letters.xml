@@ -58860,6 +58860,82 @@
         <note type="published_in"></note>
         <note type="comment">Verzeichnet als zwei Briefe. Transkription durch BLB Karlsruhe unter <ref target="https://creativecommons.org/licenses/by/4.0/deed.de">CC-BY-Lizenz (4.0)</ref></note>
       </correspDesc>
+      <correspDesc key="lassberg-letter-3269" ref="https://github.com/michaelscho/lassberg/tree/main/data/letters/lassberg-letter-3269.xml" change="in_register">
+        <correspAction type="sent">
+          <persName key="lassberg-correspondent-0373" ref="https://d-nb.info/gnd/118778862" ana="https://de.wikipedia.org/wiki/Joseph_von_La%C3%9Fberg">Joseph von Laßberg</persName>
+          <placeName key="lassberg-place-0037" ref="https://www.wikidata.org/wiki/Q83062" ana="47.95305556,8.50333333">Donaueschingen</placeName>
+          <date when="1805-08-16">1805-08-16</date>
+        </correspAction>
+        <correspAction type="received">
+          <persName key="lassberg-correspondent-0076" ref="https://d-nb.info/gnd/136284124" ana="https://de.wikipedia.org/wiki/Elisabeth_zu_F%C3%BCrstenberg">Elisabeth zu Fürstenberg</persName>
+        </correspAction>
+        <note type="nummer_harris">n/a</note>
+        <note type="journalnummer"></note>
+        <note type="aufbewahrungsort">Donaueschingen</note>
+        <note type="aufbewahrungsinstitution">Fürstlich Fürstenbergisches Archiv</note>
+        <note type="signatur"></note>
+        <note type="url_facsimile"></note>
+        <note type="scan">none</note>
+        <note type="published_in"></note>
+        <note type="comment">War zuvor irrtümlich als lassberg-letter-3629 eingetragen; unter 3269 neu ins Register aufgenommen (Konkordanz UB Freiburg/Schonhardt).</note>
+      </correspDesc>
+      <correspDesc key="lassberg-letter-3270" ref="https://github.com/michaelscho/lassberg/tree/main/data/letters/lassberg-letter-3270.xml" change="in_register">
+        <correspAction type="sent">
+          <persName key="lassberg-correspondent-0373" ref="https://d-nb.info/gnd/118778862" ana="https://de.wikipedia.org/wiki/Joseph_von_La%C3%9Fberg">Joseph von Laßberg</persName>
+          <placeName key="lassberg-place-0152" ref="https://www.wikidata.org/wiki/Q24238356" ana="">Unbekannt</placeName>
+          <date when="1808-06-28">1808-06-28</date>
+        </correspAction>
+        <correspAction type="received">
+          <persName key="lassberg-correspondent-0076" ref="https://d-nb.info/gnd/136284124" ana="https://de.wikipedia.org/wiki/Elisabeth_zu_F%C3%BCrstenberg">Elisabeth zu Fürstenberg</persName>
+        </correspAction>
+        <note type="nummer_harris">n/a</note>
+        <note type="journalnummer"></note>
+        <note type="aufbewahrungsort">Donaueschingen</note>
+        <note type="aufbewahrungsinstitution">Fürstlich Fürstenbergisches Archiv</note>
+        <note type="signatur"></note>
+        <note type="url_facsimile"></note>
+        <note type="scan">none</note>
+        <note type="published_in"></note>
+        <note type="comment">Neu ins Register aufgenommen (Konkordanz UB Freiburg/Schonhardt, Verzeichnis lassberg-letter-0000-1808-06-28).</note>
+      </correspDesc>
+      <correspDesc key="lassberg-letter-3271" ref="https://github.com/michaelscho/lassberg/tree/main/data/letters/lassberg-letter-3271.xml" change="in_register">
+        <correspAction type="sent">
+          <persName key="lassberg-correspondent-0373" ref="https://d-nb.info/gnd/118778862" ana="https://de.wikipedia.org/wiki/Joseph_von_La%C3%9Fberg">Joseph von Laßberg</persName>
+          <placeName key="lassberg-place-0152" ref="https://www.wikidata.org/wiki/Q24238356" ana="">Unbekannt</placeName>
+          <date when="1808-08-31">1808-08-31</date>
+        </correspAction>
+        <correspAction type="received">
+          <persName key="lassberg-correspondent-0076" ref="https://d-nb.info/gnd/136284124" ana="https://de.wikipedia.org/wiki/Elisabeth_zu_F%C3%BCrstenberg">Elisabeth zu Fürstenberg</persName>
+        </correspAction>
+        <note type="nummer_harris">n/a</note>
+        <note type="journalnummer"></note>
+        <note type="aufbewahrungsort">Donaueschingen</note>
+        <note type="aufbewahrungsinstitution">Fürstlich Fürstenbergisches Archiv</note>
+        <note type="signatur"></note>
+        <note type="url_facsimile"></note>
+        <note type="scan">none</note>
+        <note type="published_in"></note>
+        <note type="comment">Neu ins Register aufgenommen (Konkordanz UB Freiburg/Schonhardt, Verzeichnis lassberg-letter-0000-1808-08-31).</note>
+      </correspDesc>
+      <correspDesc key="lassberg-letter-3272" ref="https://github.com/michaelscho/lassberg/tree/main/data/letters/lassberg-letter-3272.xml" change="in_register">
+        <correspAction type="sent">
+          <persName key="lassberg-correspondent-0373" ref="https://d-nb.info/gnd/118778862" ana="https://de.wikipedia.org/wiki/Joseph_von_La%C3%9Fberg">Joseph von Laßberg</persName>
+          <placeName key="lassberg-place-0152" ref="https://www.wikidata.org/wiki/Q24238356" ana="">Unbekannt</placeName>
+          <date when="1814-04-30">1814-04-30</date>
+        </correspAction>
+        <correspAction type="received">
+          <persName key="lassberg-correspondent-0076" ref="https://d-nb.info/gnd/136284124" ana="https://de.wikipedia.org/wiki/Elisabeth_zu_F%C3%BCrstenberg">Elisabeth zu Fürstenberg</persName>
+        </correspAction>
+        <note type="nummer_harris">n/a</note>
+        <note type="journalnummer"></note>
+        <note type="aufbewahrungsort">Donaueschingen</note>
+        <note type="aufbewahrungsinstitution">Fürstlich Fürstenbergisches Archiv</note>
+        <note type="signatur"></note>
+        <note type="url_facsimile"></note>
+        <note type="scan">none</note>
+        <note type="published_in"></note>
+        <note type="comment">Neu ins Register aufgenommen (Konkordanz UB Freiburg/Schonhardt, Verzeichnis lassberg-letter-0000-1814-04-30; Absender/Empfänger nicht explizit angegeben, aus Kontext der Reihe übernommen).</note>
+      </correspDesc>
     </profileDesc>
   </teiHeader>
 </TEI>

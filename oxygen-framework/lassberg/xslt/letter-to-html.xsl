@@ -124,6 +124,17 @@
                                         select="//tei:additional/tei:surrogates/tei:bibl/text()"/>
                                 </a>
                             </p>
+                            <xsl:variable name="metadata-doc-id" select="/tei:TEI/@xml:id"/>
+                            <xsl:variable name="scan"
+                                select="normalize-space(document('../../../data/register/lassberg-letters.xml')//tei:correspDesc[@key = $metadata-doc-id]/tei:note[@type = 'url_facsimile'])"/>
+                            <xsl:if test="string-length($scan) &gt; 0">
+                                <p>
+                                    <strong>Digitalisat: </strong>
+                                    <a href="{$scan}">
+                                        <xsl:value-of select="$scan"/>
+                                    </a>
+                                </p>
+                            </xsl:if>
                         </section>
 
                         <!-- Leaflet Map Section (hidden by the map script when no place has
