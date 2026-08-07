@@ -52,10 +52,9 @@ python vlm_training/src/ingest_pages.py \
 
 # 4. Prepare training data
 # Edit vlm_training/config/datasets.yaml to choose a preset (all / medieval / modern / custom)
-# HF cache and output default to /mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder/
 # No flags needed on the server — just run:
 python vlm_training/src/data_prep.py
-#   writes: data/train  data/val
+#   writes: /mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder/data/{train,val}
 
 # 5. Train
 python vlm_training/src/train.py
@@ -69,6 +68,29 @@ python vlm_training/src/eval.py \
 python vlm_training/push_to_hub.py \
     --adapter  output/qwen3-vl-htr \
     --repo_id  dh-unibe/qwen3-vl-30b-htr
+```
+
+## Storage layout on asterAIx
+
+The NVMe root partition is too small for the HF cache (~660 GB), so it lives on the
+network share and is reached through a symlink at the standard cache path:
+
+```bash
+~/.cache/huggingface/hub -> /mnt/wbkolleg_dh_1/Textrecognition_Training/hf_hub
+```
+
+Because it is the *standard* path, no `HF_HOME` is needed — every HF tool (datasets,
+transformers, `hf download`) writes there automatically. Verify with:
+
+```bash
+ls -la ~/.cache/huggingface/hub && df -h /
+```
+
+`TMPDIR` must point at the share too, and it has to be exported **before** Python starts
+(`dill` reads it at import time). Add this to `~/.bashrc`:
+
+```bash
+export TMPDIR=/mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder/tmp
 ```
 
 ## Choosing datasets

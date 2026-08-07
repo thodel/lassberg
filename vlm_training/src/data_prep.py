@@ -14,16 +14,26 @@ text_column: "text"         Plain text column (most datasets)
 text_column: "xml_content"  PageXML — text is extracted from
                             <TextEquiv><Unicode>...</Unicode></TextEquiv>
 
-Storage layout (default)
-────────────────────────
-/mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder/
-  hf_datasets/                 ← HF download cache (one subfolder per dataset)
+Storage layout
+──────────────
+The HF download cache uses the standard location, ~/.cache/huggingface.
+On asterAIx that path is a symlink to the network share:
+
+  ~/.cache/huggingface/hub -> /mnt/wbkolleg_dh_1/Textrecognition_Training/hf_hub/
     datasets--dh-unibe--image-text_kurrent-xix/
     datasets--dh-unibe--image-text_medieval-scripts_xiv-xv-xvi/
+    models--Qwen--Qwen3-VL-30B-A3B-Instruct/
     ...
-  data/
-    train/                     ← Arrow cache written by this script
-    val/
+
+Pass --hf_cache only if you need a non-standard cache root.
+
+Arrow output and scratch go to the network share directly:
+
+  /mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder/
+    data/
+      train/                   ← Arrow cache written by this script
+      val/
+    tmp/                       ← TMPDIR
 
 Usage:
     python vlm_training/src/data_prep.py                  # uses defaults + active_preset
@@ -48,17 +58,22 @@ KEEP_COLS   = {"image", "text", "source_type"}
 CONFIG_PATH = Path(__file__).parent.parent / "config" / "datasets.yaml"
 
 BASE_DIR    = Path("/mnt/wbkolleg_dh_1/Textrecognition_Training/training_folder")
-HF_DATASETS_DIR = BASE_DIR / "hf_datasets"
 DEFAULT_OUTPUT  = str(BASE_DIR / "data")
+
+# Standard HF cache root. On asterAIx ~/.cache/huggingface/hub is a symlink
+# to the network share, so nothing needs to be overridden here.
+DEFAULT_HF_HOME = Path(
+    os.environ.get("HF_HOME", Path.home() / ".cache" / "huggingface")
+)
 
 # Matches all <Unicode>...</Unicode> blocks in a PageXML string
 _UNICODE_RE = re.compile(r"<Unicode>(.*?)</Unicode>", re.DOTALL)
 
 
-def _repo_cache_dir(hf_datasets_dir: Path, repo_id: str) -> Path:
+def _repo_cache_dir(hf_home: Path, repo_id: str) -> Path:
     """Return the expected HF hub cache folder for a dataset repo."""
     safe = repo_id.replace("/", "--")
-    return hf_datasets_dir / f"datasets--{safe}"
+    return hf_home / "hub" / f"datasets--{safe}"
 
 
 def _extract_pagexml_text(xml: str) -> str:
@@ -84,7 +99,7 @@ def load_config(preset: str | None = None) -> list[dict]:
     return entries
 
 
-def _load_one(entry: dict, hf_datasets_dir: Path):
+def _load_one(entry: dict, hf_home: Path):
     repo_id      = entry["repo_id"]
     source_type  = entry["source_type"]
     min_text_len = entry.get("min_text_len", 3)
@@ -92,7 +107,7 @@ def _load_one(entry: dict, hf_datasets_dir: Path):
     text_column  = entry.get("text_column", "text")
 
     # ── Skip if already cached locally (same name = same dataset) ────────────
-    cache_dir = _repo_cache_dir(hf_datasets_dir, repo_id)
+    cache_dir = _repo_cache_dir(hf_home, repo_id)
     if cache_dir.exists():
         logger.info(f"Using cached  {repo_id}  ({cache_dir})")
     else:
@@ -134,13 +149,13 @@ def _load_one(entry: dict, hf_datasets_dir: Path):
 
 def load_and_prepare(
     preset: str | None = None,
-    hf_datasets_dir: Path = HF_DATASETS_DIR,
+    hf_home: Path = DEFAULT_HF_HOME,
     val_fraction: float = 0.02,
     seed: int = 42,
     output_dir: str = DEFAULT_OUTPUT,
 ):
     entries  = load_config(preset)
-    results  = [_load_one(e, hf_datasets_dir) for e in entries]
+    results  = [_load_one(e, hf_home) for e in entries]
     parts    = [p for p in results if p is not None]
     n_failed = len(results) - len(parts)
 
@@ -148,7 +163,7 @@ def load_and_prepare(
         raise RuntimeError(
             f"No datasets loaded — all {n_failed} dataset(s) failed. "
             "Common causes: no disk space or network errors. "
-            f"Check that {hf_datasets_dir} has sufficient free space."
+            f"Check that {hf_home / 'hub'} has sufficient free space."
         )
 
     if n_failed:
@@ -187,24 +202,28 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--hf_cache",
-        default=str(HF_DATASETS_DIR),
-        help=f"HF cache root — sets HF_HOME (default: {HF_DATASETS_DIR})",
+        default=None,
+        help="Override the HF cache root (sets HF_HOME). Normally unnecessary — "
+             f"defaults to {DEFAULT_HF_HOME}, whose hub/ is symlinked to the network share.",
     )
     args = parser.parse_args()
 
-    # Redirect entire HF cache before any HF library initialises its paths
-    os.environ["HF_HOME"] = args.hf_cache
-    os.environ["HF_DATASETS_CACHE"] = args.hf_cache
+    # Only override the HF cache when explicitly asked; the default location is
+    # already redirected to the network share via the ~/.cache/huggingface/hub symlink.
+    hf_home = Path(args.hf_cache) if args.hf_cache else DEFAULT_HF_HOME
+    if args.hf_cache:
+        os.environ["HF_HOME"] = args.hf_cache
+
     os.environ.setdefault("TMPDIR", str(BASE_DIR / "tmp"))
     Path(os.environ["TMPDIR"]).mkdir(parents=True, exist_ok=True)
-    Path(args.hf_cache).mkdir(parents=True, exist_ok=True)
-    logger.info(f"HF_HOME       -> {args.hf_cache}")
+    (hf_home / "hub").mkdir(parents=True, exist_ok=True)
+    logger.info(f"HF cache      -> {hf_home / 'hub'}")
     logger.info(f"TMPDIR        -> {os.environ['TMPDIR']}")
     logger.info(f"output_dir    -> {args.output_dir}")
 
     load_and_prepare(
         preset=args.preset,
-        hf_datasets_dir=Path(args.hf_cache),
+        hf_home=hf_home,
         val_fraction=args.val_fraction,
         output_dir=args.output_dir,
     )
