@@ -2,3 +2,4 @@
 .german_large/
 rag/chroma/
 rag/rag_config.py
+.DS_Store
