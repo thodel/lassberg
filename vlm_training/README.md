@@ -116,26 +116,46 @@ To add a new dataset, append it to any preset in `datasets.yaml`:
 
 ## Dataset sources
 
-### Line-level (from dh-unibe HF Hub)
+### Page-level, PageXML (from dh-unibe HF Hub)
 
-| Dataset | Samples | Content |
+Schemas verified on the hub, 2026-08-07. Almost every dh-unibe set came out of the
+same `pagexml-hf` converter and has **`image` (a whole page scan) + `xml_content`
+(PageXML) + `filename` + `project_name`** — no `text` column, and the image is a
+page, not a line crop. `data_prep.py` extracts the transcription from the
+`<Unicode>` nodes, one per line.
+
+| Dataset | Rows | Content |
 |---|---|---|
-| image-text_kurrent-xix | ~158K | 19th-c. Kurrent handwriting |
-| image-text_medieval-scripts_xiv-xv-xvi | ~100K+ | Medieval Latin/German |
-| image-text_zh-regierungsratsprotokolle | ~100K+ | Zurich council minutes |
-| image-text_historisches-grundbuch-basel_xix-xx_train | ~10K | Basel property register (ground truth subset) |
-| image-text_aaeb-xiv-xvii | ~2.5K | Cantonal archive, multilingual |
-| image-text_aaeb-xiv-xvii-part-2 | ~121 | Cantonal archive part 2 (PageXML) |
-| image-text_parzival-part-1 | ~3.6K | Medieval manuscript |
-| image-text_rats-und-richtebuecher_xv-xvi | ~10K+ | Council records |
-| image-text_german-20th-century | ~8.5K | 20th-c. German handwriting |
-| image-text_koenigsfelden-charters-part-2 | ~68 | Königsfelden charters |
-| image-text_koenigsfelden-charters-part-3 | ~n<1K | Königsfelden charters |
-| image-text_koenigsfelden-charters-post-1500 | ~1K+ | Königsfelden post-1500 |
-| image-text_koenigsfelden-adhr-colmar | ~223 | Middle High German/Latin charters (PageXML) |
-| image-text_hgb-kf_mixture | ~154 | Mixed Basel/Königsfelden (PageXML) |
-| image-text_nr-sr-vereinigte-bundesversammlung-xix | ~182 | Swiss parliament minutes (PageXML) |
-| data-towerbooks-textlines | ~47.8K | Tower books text lines |
+| image-text_kurrent-xix | 144.5K | 19th-c. Kurrent handwriting |
+| image-text_medieval-scripts_xiv-xv-xvi | 497.4K | Medieval Flemish/Latin/German (~1 TB) |
+| image-text_zh-regierungsratsprotokolle | 153.1K | Zurich council minutes |
+| image-text_rats-und-richtebuecher_xv-xvi | 13.3K | Council records |
+| image-text_german-20th-century | 8.5K | 20th-c. German handwriting |
+| image-text_parzival-part-1 | 3.6K | Medieval manuscript |
+| image-text_koenigsfelden-charters-post-1500 | 3.1K | Königsfelden post-1500 |
+| image-text_aaeb-xiv-xvii | 2.1K | Cantonal archive, multilingual |
+| image-text_historisches-grundbuch-basel_xix-xx_train | 2.0K | Basel property register (GT subset) |
+| image-text_koenigsfelden-adhr-colmar | 223 | Middle High German/Latin charters |
+| image-text_nr-sr-vereinigte-bundesversammlung-xix | 182 | Swiss parliament minutes |
+| image-text_hgb-kf_mixture | 154 | Mixed Basel/Königsfelden |
+| image-text_aaeb-xiv-xvii-part-2 | 121 | Cantonal archive part 2 |
+| image-text_koenigsfelden-charters-part-2 | 68 | Königsfelden charters |
+| image-text_koenigsfelden-charters-part-3 | 223 | Königsfelden charters — older export: **`xml`**, not `xml_content` |
+
+### Line-level
+
+| Dataset | Rows | Content |
+|---|---|---|
+| data-towerbooks-textlines | 47.8K | Tower books — the one set whose images are already text-line crops (`text` column, `line_id`, reading order) |
+
+Available on its own as the `lines` preset.
+
+> **Training on page scans is not the same task as training on line crops.** With
+> `source_type: page` the collator budgets 2048×28² pixels and 4096 tokens per
+> sample and the target is the whole page's transcription. To get line-level
+> training out of the page sets, the lines have to be cut from the scan using the
+> PageXML `Coords` — this pipeline does not do that;
+> `serving-atr-inference`'s VLM trainer does (`docs/VLM_TRAINING.md`).
 
 Excluded from training:
 - `image-text_handwritten-bundesratsprotokolle_xix-xx` — auto-transcribed, no ground truth
