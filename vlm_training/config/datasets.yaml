@@ -5,9 +5,30 @@
 # Fields per entry:
 #   repo_id      HuggingFace dataset repo (required)
 #   source_type  "line" (text-line crop) | "page" (full-page scan)
-#   text_column  "text" (default) | "xml_content" (PageXML — text auto-extracted)
+#   text_column  "text" | "xml_content" | "xml"  (PageXML → text auto-extracted)
 #   min_text_len minimum character count; filters near-empty rows (default: 3)
 #   split        HF split to load (default: "train")
+#
+# ── What these datasets actually are (schemas checked on the hub, 2026-08-07) ──
+# Almost every dh-unibe set was produced by the same `pagexml-hf` converter and
+# has the columns:
+#
+#     image (full page scan) | xml_content (PageXML) | filename | project_name
+#
+# So they are PAGE-level, and their text lives in PageXML — NOT in a `text`
+# column. Two exceptions:
+#
+#   * koenigsfelden-charters-part-3 predates the naming and uses `xml` (and
+#     `project`) instead of `xml_content` (and `project_name`).
+#   * data-towerbooks-textlines is the only genuinely LINE-level set here: it has
+#     a real `text` column plus line_id / line_reading_order, and averages ~60 KB
+#     a row against ~2 MB for the page sets.
+#
+# This file previously declared `source_type: line` and the default
+# `text_column: text` for all of them, which is what produced
+# `KeyError: 'text'` in the filter step. Getting line crops out of the page sets
+# is not a config change — it needs the PageXML `Coords` to be cut out of the
+# scan, which this pipeline does not do (serving-atr's VLM trainer does).
 #
 # Excluded datasets (reasons noted):
 #   image-text_handwritten-bundesratsprotokolle_xix-xx  → auto-transcribed, no ground truth
@@ -22,141 +43,175 @@ presets:
   # ── All available ground-truth datasets ─────────────────────────────────────
   all:
 
-    # Plain text column datasets
+    # PageXML page scans — text extracted from xml_content, one line per <Unicode>
     - repo_id: dh-unibe/image-text_kurrent-xix
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_medieval-scripts_xiv-xv-xvi
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_zh-regierungsratsprotokolle
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_historisches-grundbuch-basel_xix-xx_train
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_aaeb-xiv-xvii
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_parzival-part-1
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_rats-und-richtebuecher_xv-xvi
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_german-20th-century
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-2
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
+    # Older export: the PageXML column is `xml`, not `xml_content`
     - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-3
-      source_type: line
+      source_type: page
+      text_column: xml
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_koenigsfelden-charters-post-1500
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
-    - repo_id: dh-unibe/data-towerbooks-textlines
-      source_type: line
-      min_text_len: 3
-
-    # PageXML datasets — text extracted from xml_content column
     - repo_id: dh-unibe/image-text_hgb-kf_mixture
-      source_type: line
+      source_type: page
       text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_aaeb-xiv-xvii-part-2
-      source_type: line
+      source_type: page
       text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_nr-sr-vereinigte-bundesversammlung-xix
-      source_type: line
+      source_type: page
       text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_koenigsfelden-adhr-colmar
-      source_type: line
+      source_type: page
       text_column: xml_content
+      min_text_len: 3
+
+    # The one genuine line-level set: a real `text` column, one row per TextLine
+    - repo_id: dh-unibe/data-towerbooks-textlines
+      source_type: line
+      text_column: text
       min_text_len: 3
 
   # ── Medieval scripts only (xiv–xvi) ─────────────────────────────────────────
   medieval:
     - repo_id: dh-unibe/image-text_medieval-scripts_xiv-xv-xvi
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_parzival-part-1
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_aaeb-xiv-xvii
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_aaeb-xiv-xvii-part-2
-      source_type: line
+      source_type: page
       text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_rats-und-richtebuecher_xv-xvi
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-2
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_koenigsfelden-charters-part-3
-      source_type: line
+      source_type: page
+      text_column: xml
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_koenigsfelden-charters-post-1500
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_koenigsfelden-adhr-colmar
-      source_type: line
+      source_type: page
       text_column: xml_content
       min_text_len: 3
 
   # ── 19th–20th century German handwriting ────────────────────────────────────
   modern:
     - repo_id: dh-unibe/image-text_kurrent-xix
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_zh-regierungsratsprotokolle
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_historisches-grundbuch-basel_xix-xx_train
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_german-20th-century
-      source_type: line
+      source_type: page
+      text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/image-text_nr-sr-vereinigte-bundesversammlung-xix
-      source_type: line
+      source_type: page
       text_column: xml_content
       min_text_len: 3
 
     - repo_id: dh-unibe/data-towerbooks-textlines
       source_type: line
+      text_column: text
+      min_text_len: 3
+
+  # ── The only line-level ground truth on the hub, on its own ─────────────────
+  # Useful when you want line-level training without the page sets: it is the one
+  # dataset here whose images are already text-line crops.
+  lines:
+    - repo_id: dh-unibe/data-towerbooks-textlines
+      source_type: line
+      text_column: text
       min_text_len: 3
 
   # ── Add your own page-level datasets here ───────────────────────────────────

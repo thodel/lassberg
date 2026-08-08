@@ -69,6 +69,13 @@ DEFAULT_HF_HOME = Path(
 # Matches all <Unicode>...</Unicode> blocks in a PageXML string
 _UNICODE_RE = re.compile(r"<Unicode>(.*?)</Unicode>", re.DOTALL)
 
+# Column names that hold a PageXML document rather than a transcription. The
+# dh-unibe datasets were exported by the same `pagexml-hf` converter and almost
+# all use `xml_content`; koenigsfelden-charters-part-3 predates that naming and
+# uses `xml` (with `project` instead of `project_name`). Both are PageXML, so
+# both take the extraction path.
+PAGEXML_COLUMNS = {"xml_content", "xml"}
+
 
 def _repo_cache_dir(hf_home: Path, repo_id: str) -> Path:
     """Return the expected HF hub cache folder for a dataset repo."""
@@ -77,10 +84,15 @@ def _repo_cache_dir(hf_home: Path, repo_id: str) -> Path:
 
 
 def _extract_pagexml_text(xml: str) -> str:
-    """Pull all Unicode text nodes from a PageXML string and join with a space."""
+    """Pull all Unicode text nodes from a PageXML string, one per line.
+
+    Joined with a newline, not a space: these rows are whole page scans, and the
+    line structure is part of what a page-level model has to reproduce. Flattening
+    18 text lines into one space-separated run trains it to emit a wall of text.
+    """
     if not xml:
         return ""
-    return " ".join(
+    return "\n".join(
         m.group(1).strip() for m in _UNICODE_RE.finditer(xml) if m.group(1).strip()
     )
 
@@ -119,10 +131,23 @@ def _load_one(entry: dict, hf_home: Path):
         logger.warning(f"  Skipping {repo_id}: {e}")
         return None
 
+    # ── Check the configured column actually exists ───────────────────────────
+    # Without this the mismatch only surfaces further down as a bare
+    # `KeyError: 'text'` from inside datasets' filter worker, with no indication
+    # of WHICH of the sixteen datasets is misconfigured. Nearly every dh-unibe
+    # dataset is PageXML (`xml_content`), not plain text, so this is the mistake
+    # the config invites.
+    if text_column not in ds.column_names:
+        raise ValueError(
+            f"{repo_id}: no column {text_column!r}. It has {ds.column_names}.\n"
+            f"Set text_column in {CONFIG_PATH.name} — use "
+            f"'xml_content' (or 'xml') for PageXML datasets, which is most of them."
+        )
+
     # ── Normalise text column ─────────────────────────────────────────────────
-    if text_column == "xml_content":
+    if text_column in PAGEXML_COLUMNS:
         ds = ds.map(
-            lambda x: {"text": _extract_pagexml_text(x["xml_content"] or "")},
+            lambda x: {"text": _extract_pagexml_text(x[text_column] or "")},
             desc=f"Extracting PageXML text ({repo_id})",
         )
     elif text_column != "text":
