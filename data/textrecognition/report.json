@@ -1,0 +1,22 @@
+{
+  "schema": "atr-batch/1",
+  "run": "atr_trocr_corpus",
+  "pages": 899,
+  "started_at": "2026-09-17T06:30:41+00:00",
+  "elapsed_s": 31333.0,
+  "models": [
+    {
+      "model": "trocr-kurrent",
+      "done": 899,
+      "skipped": 0,
+      "failed": 0,
+      "chars": 758626,
+      "lines": 16307,
+      "truncated": 0,
+      "recognition_ms": 34154855,
+      "elapsed_s": 31333.0,
+      "aborted": "",
+      "errors": []
+    }
+  ]
+}
